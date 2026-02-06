@@ -1,7 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-
-
+from pydantic import BaseModel, field_validator
 app = FastAPI()
 
 students = []
@@ -11,6 +9,11 @@ class Student(BaseModel):
     name : str
     age : int
     course : str
+    @field_validator("name")
+    def name_must_be_letter(cls, value):
+        if not value.isalpha():
+            raise ValueError("Name must contain only letters")
+        return value
 
 @app.get("/")
 def home():
