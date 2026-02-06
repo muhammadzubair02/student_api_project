@@ -1,26 +1,33 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 app = FastAPI()
 
 students = []
 
 class Student(BaseModel):
-    id : int
+    id : int 
     name : str
     age : int
-    course : str
+    course : str = Field(min_length=6, max_length=25)
     @field_validator("name")
     def name_must_be_letter(cls, value):
-        if not value.isalpha():
+        if not value.replace(" ", "").isalpha():
             raise ValueError("Name must contain only letters")
         return value
-
+    @field_validator("id")
+    def id_must_not_be_negative_number(cls, value):
+        if value < 0 :
+            raise ValueError("ID must be a positive number")
+        return value
 @app.get("/")
 def home():
     return {"message": "Student Management API Running"}
 
 @app.post("/students")
 def add_student(student : Student):
+    for i in students:
+        if i.id == student.id:
+            return {"error": f"Student with ID {student.id} already exists"}
     students.append(student)
     return {"message": "Students Added", "data": student}
 
